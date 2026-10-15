@@ -1,4 +1,5 @@
 
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,14 @@ namespace sim_backend_api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Configuration.AddAzureKeyVault(
+                new Uri("https://studentmanagement-tcs-kv.vault.azure.net/"), new DefaultAzureCredential());
+
             var jwt = builder.Configuration.GetSection("Jwt");
             // Add services to the container.
 
             builder.Services.AddControllers();
-            var constr = builder.Configuration.GetConnectionString("DBCS");
+            var constr = builder.Configuration.GetConnectionString("ConStr");
 
             builder.Services.AddDbContext<AppDbContext>(options =>
             {
@@ -76,7 +80,16 @@ namespace sim_backend_api
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
-
+            //app.MapGet("/jwt-test", (IConfiguration config) =>
+            //{
+            //    return Results.Ok(new
+            //    {
+            //        Issuer = config["Jwt:Issuer"],
+            //        Audience = config["Jwt:Audience"],
+            //        Expiry = config["Jwt:ExpiryMinutes"],
+            //        ConStr = config["ConnectionStrings:ConStr"]
+            //    });
+            //});
 
             app.MapControllers();
 
